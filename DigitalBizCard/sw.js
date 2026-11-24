@@ -1,4 +1,0 @@
-const V="dbc-v1",A=["./","./icons/icon-180.png","./icons/icon-192.png","./icons/icon-512.png","./index.html","./manifest.webmanifest","./style.css","./vendor/fa/css/all.min.css","./vendor/fa/webfonts/fa-solid-900.woff2","./vendor/fonts.css","./vendor/html2canvas.min.js","./vendor/inter/inter-latin-400-normal.woff2","./vendor/inter/inter-latin-500-normal.woff2","./vendor/inter/inter-latin-600-normal.woff2","./vendor/inter/inter-latin-700-normal.woff2","./vendor/inter/inter-latin-800-normal.woff2","./vendor/jsQR.js","./vendor/qrcode.js"];
-self.addEventListener("install",e=>e.waitUntil(caches.open(V).then(c=>c.addAll(A)).then(()=>self.skipWaiting())));
-self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==V).map(x=>caches.delete(x)))).then(()=>self.clients.claim())));
-self.addEventListener("fetch",e=>{if(e.request.method!=="GET")return;e.respondWith(caches.match(e.request,{ignoreSearch:true}).then(r=>r||fetch(e.request)))});
