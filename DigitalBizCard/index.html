@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="it"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BizCard">
+<meta name="theme-color" content="#080C12">
+<title>Digital Biz Card</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="vendor/fa/css/all.min.css">
+<link rel="stylesheet" href="vendor/fonts.css">
+<link rel="stylesheet" href="style.css">
+<style>
+body{font-family:'Inter',sans-serif;background-color:#080C12;background-image:radial-gradient(circle at 15% 15%,rgba(0,158,226,.08) 0%,transparent 40%),radial-gradient(circle at 85% 85%,rgba(0,51,102,.12) 0%,transparent 40%);min-height:100vh;-webkit-tap-highlight-color:transparent}
+input{font-size:16px!important}
+.tech-circuit-bg{background-image:radial-gradient(#009EE2 .75px,transparent .75px),radial-gradient(#009EE2 .75px,#fff .75px);background-size:16px 16px;background-position:0 0,8px 8px;opacity:.04}
+.card-shadow{box-shadow:0 25px 60px -15px rgba(0,0,0,.6),0 0 40px rgba(0,158,226,.15)}
+.hb{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:rgba(30,41,59,.9);border:1px solid rgba(51,65,85,.6);color:#e2e8f0}
+.hb:active{color:#009EE2}
+#qrcode canvas,#modalQrcode canvas{display:block;margin:0 auto}
+#cardLogo{max-height:48px;max-width:220px;width:auto;height:auto;object-fit:contain;display:block}
+</style></head>
+<body class="flex flex-col items-center justify-start p-3 text-slate-800 antialiased" style="padding-top:max(.75rem,env(safe-area-inset-top));padding-bottom:max(1.5rem,env(safe-area-inset-bottom))">
+
+<header class="w-full max-w-md flex items-center justify-between py-2 px-1 mb-3 text-white z-20">
+  <div class="flex items-center space-x-2"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span><span class="font-extrabold text-slate-200 tracking-wider uppercase text-xs">Digital Biz Card</span></div>
+  <div class="flex items-center space-x-2">
+    <button class="hb" onclick="openRubrica()" aria-label="Rubrica"><i class="fa-solid fa-address-book text-sm"></i></button>
+    <button class="hb" onclick="openScanner()" aria-label="Scansiona"><i class="fa-solid fa-qrcode text-sm"></i></button>
+    <button class="hb" onclick="openSettings()" aria-label="Modifica"><i class="fa-solid fa-gear text-sm"></i></button>
+  </div>
+</header>
+
+<main class="w-full max-w-md flex flex-col items-center justify-center relative my-auto">
+  <div id="cardFrame" class="w-full max-w-[390px] bg-white text-slate-900 shadow-2xl relative flex flex-col justify-between rounded-[44px] border border-slate-200/80 overflow-hidden card-shadow">
+    <div class="relative bg-white pt-6 pb-5 px-6 border-b border-slate-100 flex flex-col items-center justify-center">
+      <div class="absolute inset-0 tech-circuit-bg pointer-events-none"></div>
+      <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-spea-blue via-spea-cyan to-spea-blue"></div>
+      <div class="absolute bottom-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-spea-cyan/40 to-transparent"></div>
+      <div class="relative z-10 my-1 py-1 px-4 flex items-center justify-center min-h-[48px] w-full">
+        <img id="cardLogo" alt="Logo" onerror="logoErr(this)">
+        <div id="cardLogoFallback" class="hidden items-center justify-center space-x-2">
+          <svg class="w-8 h-8" viewBox="0 0 100 100"><polygon points="50,5 95,50 50,95 5,50" fill="none" stroke="#009EE2" stroke-width="10"/><polygon points="50,22 78,50 50,78 22,50" fill="#009EE2"/></svg>
+          <span id="fbName" class="font-extrabold text-2xl tracking-tighter text-spea-blue"></span>
+        </div>
+      </div>
+    </div>
+    <div class="px-6 pt-5 pb-3 flex items-center space-x-4 relative z-10 bg-white">
+      <div class="relative flex-shrink-0">
+        <div class="w-20 h-20 rounded-2xl overflow-hidden border-[2.5px] border-spea-cyan shadow-md bg-slate-50 flex items-center justify-center">
+          <img id="cardAvatar" alt="Foto" class="w-full h-full object-cover" onerror="this.onerror=null;this.src=ph()">
+        </div>
+        <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-spea-cyan text-white rounded-full flex items-center justify-center shadow-md border-2 border-white text-[10px]"><i class="fa-solid fa-check"></i></div>
+      </div>
+      <div class="flex-1 min-w-0 text-left">
+        <h1 id="cardName" class="text-xl font-extrabold text-slate-900 tracking-tight leading-snug truncate"></h1>
+        <p id="cardTitle" class="text-xs font-bold text-spea-cyan mt-0.5 truncate"></p>
+        <p id="cardSubtitle" class="text-[11.5px] font-medium text-slate-600 leading-tight mt-0.5 line-clamp-2"></p>
+        <p id="cardDept" class="text-[11.5px] font-medium text-slate-400 mt-1 leading-snug"></p>
+      </div>
+    </div>
+    <div id="cardContactSection" class="px-6 py-2 space-y-2 relative z-10 bg-white flex-1"></div>
+    <div class="px-6 pb-6 pt-2 bg-white flex flex-col items-center justify-center relative z-10">
+      <div class="w-full bg-white border border-slate-200 rounded-3xl p-3 shadow-sm flex flex-col items-center justify-center">
+        <div id="qrcode" class="p-2 bg-white rounded-xl flex items-center justify-center min-h-[140px] min-w-[140px]"></div>
+        <p class="text-[10px] font-extrabold tracking-widest text-slate-400 uppercase mt-2">SCAN TO SAVE CONTACT</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="w-full max-w-[390px] mt-4 flex flex-col space-y-2 z-20">
+    <div class="grid grid-cols-2 gap-2">
+      <button onclick="shareVCard()" class="py-3 px-4 bg-spea-blue text-white rounded-2xl font-bold text-xs shadow-lg flex items-center justify-center space-x-2 active:scale-95 transition"><i class="fa-solid fa-user-plus"></i><span>Condividi vCard</span></button>
+      <button onclick="openQR()" class="py-3 px-4 bg-slate-800 text-white rounded-2xl font-bold text-xs shadow-lg flex items-center justify-center space-x-2 active:scale-95 transition"><i class="fa-solid fa-expand"></i><span>Ingrandisci QR</span></button>
+    </div>
+    <button onclick="exportPNG()" class="w-full py-3 bg-gradient-to-r from-spea-cyan via-blue-600 to-spea-blue text-white rounded-2xl font-bold text-xs shadow-xl flex items-center justify-center space-x-2 active:scale-95 transition"><i class="fa-solid fa-download text-sm"></i><span>Esporta Immagine (PNG 3X con QR Code)</span></button>
+  </div>
+</main>
+
+<!-- Export -->
+<div id="exportModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden opacity-0 transition-opacity duration-300">
+  <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90dvh]">
+    <div class="px-5 py-3.5 bg-slate-900 text-white flex items-center justify-between"><span class="font-bold text-sm"><i class="fa-solid fa-image text-spea-cyan mr-2"></i>Immagine pronta (PNG 3X)</span><button onclick="hide('exportModal')" class="w-8 h-8 text-slate-400"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="p-4 overflow-y-auto flex-1 flex flex-col items-center text-center">
+      <div class="w-full max-w-[260px] bg-slate-100 rounded-2xl p-2 border border-slate-200 mb-3"><img id="exportedImagePreview" alt="" class="w-full h-auto rounded-xl shadow-md"></div>
+      <p class="text-xs text-slate-600"><i class="fa-solid fa-hand-pointer text-spea-cyan"></i> Tocca <strong>Salva in Foto</strong> e scegli <em>"Salva immagine"</em> nel foglio di condivisione. In alternativa, tieni premuto sull'immagine.</p>
+    </div>
+    <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-col gap-2">
+      <button onclick="sendFile(png,fname()+'.png')" class="py-3 px-4 bg-slate-900 text-white rounded-xl font-bold text-xs flex items-center justify-center space-x-2"><i class="fa-solid fa-share-nodes"></i><span>Salva in Foto / Condividi</span></button>
+      <a id="btnDirectDownload" href="#" class="py-3 px-4 bg-spea-cyan text-white rounded-xl font-bold text-xs flex items-center justify-center space-x-2"><i class="fa-solid fa-file-arrow-down"></i><span>Scarica PNG HD (File)</span></a>
+    </div>
+  </div>
+</div>
+
+<!-- Settings -->
+<div id="settingsModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+  <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90dvh]">
+    <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between"><span class="font-bold text-base"><i class="fa-solid fa-sliders text-spea-cyan mr-2"></i>Modifica Dati Biglietto</span><button onclick="hide('settingsModal')" class="w-8 h-8 text-slate-400"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="p-6 space-y-4 overflow-y-auto flex-1 text-sm">
+      <div>
+        <label class="block font-semibold text-slate-700 mb-1">Logo Aziendale</label>
+        <div class="flex items-center gap-3">
+          <img id="pvLogo" alt="" class="h-12 max-w-[130px] object-contain bg-slate-100 rounded-lg p-1">
+          <label class="px-3 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-semibold text-xs border border-slate-300"><i class="fa-solid fa-upload mr-1"></i>Carica<input type="file" accept="image/*" class="hidden" onchange="pick(event,'logo')"></label>
+          <button onclick="dr.logo='';pv()" class="px-3 py-2.5 text-xs font-semibold text-rose-600">Rimuovi</button>
+        </div>
+      </div>
+      <div>
+        <label class="block font-semibold text-slate-700 mb-1">Foto Profilo</label>
+        <div class="flex items-center gap-3">
+          <img id="pvAvatar" alt="" class="w-14 h-14 rounded-xl object-cover bg-slate-100">
+          <label class="px-3 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-semibold text-xs border border-slate-300"><i class="fa-solid fa-camera mr-1"></i>Scegli foto<input type="file" accept="image/*" class="hidden" onchange="pick(event,'avatar')"></label>
+        </div>
+      </div>
+      <div id="editFields" class="space-y-4"></div>
+    </div>
+    <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
+      <button onclick="resetData()" class="px-3 py-2 text-xs text-rose-600 font-semibold">Ripristina originali</button>
+      <div class="flex space-x-2"><button onclick="hide('settingsModal')" class="px-4 py-2 text-xs font-semibold text-slate-600">Annulla</button><button onclick="saveSettings()" class="px-5 py-2 text-xs font-semibold bg-spea-cyan text-white rounded-xl shadow-md">Salva</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- QR zoom -->
+<div id="qrModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+  <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-6 text-center flex flex-col items-center">
+    <h3 class="text-lg font-bold text-slate-900 mb-1">vCard QR Code</h3>
+    <p class="text-xs text-slate-500 mb-4">Inquadra con la fotocamera per importare la scheda in rubrica.</p>
+    <div id="modalQrcode" class="p-4 bg-white rounded-2xl shadow-inner border border-slate-200 mb-5 flex items-center justify-center min-h-[200px] min-w-[200px]"></div>
+    <button onclick="hide('qrModal')" class="w-full py-2.5 bg-slate-100 text-slate-800 font-bold rounded-xl text-xs">Chiudi</button>
+  </div>
+</div>
+
+<!-- Scanner -->
+<div id="scannerModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden opacity-0 transition-opacity duration-300">
+  <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden flex flex-col items-center">
+    <div class="w-full p-4 bg-slate-900 text-white flex justify-between items-center"><span class="font-bold text-sm"><i class="fa-solid fa-camera text-spea-cyan mr-2"></i>Scanner QR / vCard</span><button onclick="closeScanner()" class="text-slate-400"><i class="fa-solid fa-xmark text-lg"></i></button></div>
+    <div class="p-4 w-full flex flex-col items-center">
+      <div class="relative w-full aspect-square max-w-[280px] bg-slate-900 rounded-2xl overflow-hidden border-2 border-spea-cyan">
+        <video id="qrVideo" class="w-full h-full object-cover" playsinline muted></video><canvas id="qrCanvas" class="hidden"></canvas>
+        <div class="absolute inset-8 border-2 border-dashed border-spea-cyan/80 rounded-xl pointer-events-none animate-pulse"></div>
+      </div>
+      <p id="scannerStatus" class="text-xs text-slate-500 mt-3 text-center"></p>
+      <label class="mt-4 w-full py-2.5 px-3 bg-slate-100 text-slate-700 rounded-xl font-semibold text-xs text-center"><i class="fa-solid fa-image mr-1"></i>Carica immagine QR o file .vcf<input type="file" accept="image/*,.vcf,text/vcard,text/x-vcard" class="hidden" onchange="scanFile(event)"></label>
+    </div>
+  </div>
+</div>
+
+<!-- Rubrica -->
+<div id="rubricaModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+  <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85dvh]">
+    <div class="px-5 py-4 bg-slate-900 text-white flex justify-between items-center"><span class="font-bold text-sm"><i class="fa-solid fa-address-book text-spea-cyan mr-2"></i>Rubrica Contatti Acquisiti</span><button onclick="hide('rubricaModal')" class="text-slate-400"><i class="fa-solid fa-xmark text-lg"></i></button></div>
+    <div class="p-4 overflow-y-auto flex-1 text-xs">
+      <div id="rubricaEmpty" class="text-center py-8 text-slate-400"><i class="fa-solid fa-folder-open text-3xl mb-2 text-slate-300"></i><p>Nessun contatto scansionato salvato.</p></div>
+      <div id="rubricaList" class="space-y-2"></div>
+    </div>
+    <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
+      <button onclick="exportAll()" class="px-3 py-2 bg-slate-800 text-white font-bold rounded-xl text-xs">Esporta tutto (.vcf)</button>
+      <button onclick="hide('rubricaModal')" class="px-4 py-2 bg-slate-200 text-slate-700 font-bold rounded-xl text-xs">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="fixed left-1/2 -translate-x-1/2 z-[60] bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl text-xs font-semibold flex items-center space-x-2.5 translate-y-20 opacity-0 transition-all duration-300 pointer-events-none border border-slate-800" style="bottom:max(1.5rem,env(safe-area-inset-bottom))"><i id="toastIcon" class="fa-solid fa-circle-check text-spea-cyan text-sm"></i><span id="toastMessage"></span></div>
+
+<script src="vendor/qrcode.js"></script>
+<script src="vendor/jsQR.js"></script>
+<script src="vendor/html2canvas.min.js"></script>
+<script>
+const LS='bizcard_v1_4_data',
+D={logo:"https://www.spea.com/wp-content/themes/spea/images/logo.png",company:"SPEA S.p.A.",name:"Giuseppe Modafferi",title:"Director",subtitle:"Customer Engineering and Operations",dept:"SEMI Product Lines",mobile:"+39 349 6360163",phone:"+39 011 9825400",email:"giuseppe.modafferi@spea.com",web:"www.spea.com",address:"Via Torino 16, 10088 - Volpiano (TO), ITALY",avatar:"https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80"};
+let card={...D},db,png,pngUrl,dr={},RC=[],vs=null;
+const $=id=>document.getElementById(id),
+esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),
+url=w=>/^https?:/i.test(w)?w:'https://'+w,
+isUrl=s=>/^https?:\/\/\S+$/i.test(s),
+safe=s=>String(s).replace(/[\\/:*?"<>|]+/g,'').trim()||'contact',
+fname=()=>safe(card.company+' - '+card.name),
+show=id=>{const m=$(id);m.classList.remove('hidden');requestAnimationFrame(()=>requestAnimationFrame(()=>m.classList.remove('opacity-0')))},
+hide=id=>{const m=$(id);m.classList.add('opacity-0');setTimeout(()=>m.classList.add('hidden'),300)};
+function toast(m,i='fa-circle-check'){$('toastMessage').textContent=m;$('toastIcon').className='fa-solid '+i+' text-spea-cyan text-sm';const t=$('toast');t.classList.remove('translate-y-20','opacity-0');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.add('translate-y-20','opacity-0'),3000)}
+function ph(){const i=card.name.split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();return 'data:image/svg+xml,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#003366"/><text x="50" y="62" font-family="Arial" font-size="36" font-weight="700" fill="#fff" text-anchor="middle">${esc(i)}</text></svg>`)}
+function logoErr(img){img.style.display='none';$('fbName').textContent=(card.company||'').split(' ')[0];const f=$('cardLogoFallback');f.classList.remove('hidden');f.classList.add('flex')}
+
+/* ---------- Storage (IndexedDB + localStorage fallback) ---------- */
+const idb=()=>new Promise(res=>{try{const r=indexedDB.open('DIGITAL_BIZ_CARD',1);r.onupgradeneeded=()=>{r.result.createObjectStore('kv');r.result.createObjectStore('contacts',{keyPath:'id',autoIncrement:true})};r.onsuccess=()=>{db=r.result;res()};r.onerror=()=>res()}catch(e){res()}});
+const req=(st,mode,fn)=>new Promise((res,rej)=>{if(!db)return rej('nodb');const t=db.transaction(st,mode),r=fn(t.objectStore(st));t.oncomplete=()=>res(r&&r.result);t.onerror=t.onabort=()=>rej(t.error)});
+async function saveProfile(d){card={...d};try{await req('kv','readwrite',s=>s.put(card,'profile'))}catch(e){try{localStorage.setItem(LS,JSON.stringify(card))}catch(e2){toast('Memoria piena o non disponibile','fa-triangle-exclamation')}}render()}
+
+/* ---------- Render ---------- */
+const ROWS=[['mobile','fa-mobile-screen-button','Cellulare',c=>'tel:'+c.mobile.replace(/\s+/g,'')],['phone','fa-phone','Telefono Ufficio',c=>'tel:'+c.phone.replace(/\s+/g,'')],['email','fa-envelope','Email',c=>'mailto:'+c.email],['web','fa-globe','Sito Web',c=>url(c.web)],['address','fa-location-dot','Sede S.p.A.',c=>'https://maps.google.com/?q='+encodeURIComponent(c.address)]];
+function render(){
+  const l=$('cardLogo'),f=$('cardLogoFallback');
+  if(card.logo){l.style.display='block';f.classList.add('hidden');f.classList.remove('flex');l.src=card.logo}else logoErr(l);
+  [['name','Name'],['title','Title'],['subtitle','Subtitle'],['dept','Dept']].forEach(([k,n])=>$('card'+n).textContent=card[k]||'');
+  const rows=ROWS.filter(r=>card[r[0]]);
+  $('cardContactSection').innerHTML=rows.map(([k,ic,lb,h],i)=>{const u=h(card);return `<a href="${esc(u)}" ${/^http/.test(u)?'target="_blank" rel="noopener"':''} class="flex items-center py-2 group ${i<rows.length-1?'border-b border-slate-100':''}"><div class="w-9 h-9 rounded-xl bg-spea-lightBg text-spea-cyan flex items-center justify-center flex-shrink-0 mr-3"><i class="fa-solid ${ic} text-sm"></i></div><div class="flex-1 min-w-0 text-left"><p class="text-[9px] uppercase font-bold tracking-wider text-slate-400">${lb}</p><p class="text-xs font-bold text-slate-800 truncate">${esc(k==='web'?card.web.replace(/^https?:\/\//,''):card[k])}</p></div><i class="fa-solid fa-chevron-right text-[10px] text-slate-300"></i></a>`}).join('');
+  $('cardAvatar').src=card.avatar||ph();
+  drawQR($('qrcode'),vcf(false),140,'M');
+}
+
+/* ---------- QR + vCard ---------- */
+function drawQR(el,text,px,lvl){const q=qrcode(0,lvl);q.addData(text);q.make();const n=q.getModuleCount(),m=2,s=Math.max(1,Math.floor(px*3/(n+2*m))),z=s*(n+2*m),c=document.createElement('canvas');c.width=c.height=z;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,z,z);x.fillStyle='#003366';for(let r=0;r<n;r++)for(let k=0;k<n;k++)if(q.isDark(r,k))x.fillRect((k+m)*s,(r+m)*s,s,s);c.style.cssText=`width:${px}px;height:${px}px`;el.replaceChildren(c)}
+const E=s=>String(s||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n'),
+fold=l=>l.replace(/(.{75})(?=.)/g,'$1\r\n ');
+function vcf(photo){
+  const p=card.name.trim().split(/\s+/),last=p.length>1?p.pop():'',first=p.join(' ');
+  const L=['BEGIN:VCARD','VERSION:3.0',`N:${E(last)};${E(first)};;;`,`FN:${E(card.name)}`,`ORG:${E(card.company)};${E(card.dept)}`];
+  const t=[card.title,card.subtitle].filter(Boolean).join(' - ');if(t)L.push('TITLE:'+E(t));
+  if(card.mobile)L.push('TEL;TYPE=CELL,VOICE:'+card.mobile);if(card.phone)L.push('TEL;TYPE=WORK,VOICE:'+card.phone);
+  if(card.email)L.push('EMAIL;TYPE=PREF,INTERNET:'+card.email);if(card.web)L.push('URL:'+url(card.web));
+  if(card.address)L.push('ADR;TYPE=WORK:;;'+E(card.address)+';;;;');
+  const m=/^data:image\/(\w+);base64,(.+)$/.exec(card.avatar||'');if(photo&&m)L.push(`PHOTO;ENCODING=b;TYPE=${m[1].toUpperCase().replace('JPG','JPEG')}:${m[2]}`);
+  L.push('END:VCARD');return L.map(fold).join('\r\n')
+}
+async function sendFile(blob,name){
+  if(!blob)return;const f=new File([blob],name,{type:blob.type});
+  try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:name});return}}catch(e){if(e.name==='AbortError')return}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4e4)
+}
+const shareVCard=()=>sendFile(new Blob([vcf(true)],{type:'text/vcard'}),fname()+'.vcf');
+function openQR(){drawQR($('modalQrcode'),vcf(false),200,'H');show('qrModal')}
+
+/* ---------- PNG export (3X) ---------- */
+async function exportPNG(){
+  toast('Generazione PNG 3X HD…','fa-spinner fa-spin');
+  try{
+    await document.fonts.ready;
+    const s=3,raw=await html2canvas($('cardFrame'),{scale:s,useCORS:true,backgroundColor:'#fff',logging:false}),w=raw.width,h=raw.height,o=document.createElement('canvas');
+    o.width=w;o.height=h;const x=o.getContext('2d'),r=44*s;
+    x.beginPath();x.moveTo(r,0);x.arcTo(w,0,w,h,r);x.arcTo(w,h,0,h,r);x.arcTo(0,h,0,0,r);x.arcTo(0,0,w,0,r);x.closePath();x.clip();x.drawImage(raw,0,0);
+    png=await new Promise(ok=>o.toBlob(ok,'image/png'));
+    if(pngUrl)URL.revokeObjectURL(pngUrl);pngUrl=URL.createObjectURL(png);
+    $('exportedImagePreview').src=pngUrl;const a=$('btnDirectDownload');a.href=pngUrl;a.download=fname()+'.png';
+    show('exportModal');toast('Immagine generata!')
+  }catch(e){toast('Errore nella creazione dell\u2019immagine','fa-triangle-exclamation')}
+}
+
+/* ---------- Settings ---------- */
+const F=[['company','Azienda'],['name','Nome e Cognome'],['title','Ruolo / Titolo'],['subtitle','Dipartimento'],['dept','Linea Prodotto / Divisione'],['mobile','Cellulare Diretto'],['phone','Telefono Ufficio'],['email','Email Aziendale'],['web','Sito Web Aziendale'],['address','Indirizzo Sede Aziendale']];
+$('editFields').innerHTML=F.map(([k,l])=>`<div><label class="block font-semibold text-slate-700 mb-1">${l}</label><input id="e_${k}" class="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-spea-cyan focus:outline-none"></div>`).join('');
+const cur=k=>dr[k]!==undefined?dr[k]:card[k];
+function pv(){const l=cur('logo');$('pvLogo').src=l||'';$('pvLogo').style.visibility=l?'visible':'hidden';$('pvAvatar').src=cur('avatar')||ph()}
+function openSettings(){dr={};F.forEach(([k])=>$('e_'+k).value=card[k]||'');pv();show('settingsModal')}
+const img2url=(file,max,type)=>new Promise((ok,ko)=>{const u=URL.createObjectURL(file),i=new Image();i.onload=()=>{const k=Math.min(1,max/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=Math.round(i.width*k);c.height=Math.round(i.height*k);const x=c.getContext('2d');if(type==='image/jpeg'){x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height)}x.drawImage(i,0,0,c.width,c.height);URL.revokeObjectURL(u);ok(c.toDataURL(type,.9))};i.onerror=ko;i.src=u});
+async function pick(e,k){const f=e.target.files[0];e.target.value='';if(!f)return;try{dr[k]=await img2url(f,600,k==='logo'?'image/png':'image/jpeg');pv()}catch(x){toast('Immagine non valida','fa-triangle-exclamation')}}
+async function saveSettings(){const n={...card,logo:cur('logo')||'',avatar:cur('avatar')||''};F.forEach(([k])=>n[k]=$('e_'+k).value.trim());n.name=n.name||D.name;await saveProfile(n);hide('settingsModal');toast('Dati salvati sul dispositivo!')}
+async function resetData(){if(confirm('Ripristinare i dati originali?')){await saveProfile({...D});hide('settingsModal');localize()}}
+async function localize(){let ch=0;for(const k of['logo','avatar']){const u=card[k];if(u&&!u.startsWith('data:'))try{const r=await fetch(u,{mode:'cors'});if(!r.ok)continue;const b=await r.blob();if(!/^image\//.test(b.type))continue;card[k]=await new Promise((ok,ko)=>{const f=new FileReader();f.onload=()=>ok(f.result);f.onerror=ko;f.readAsDataURL(b)});ch=1}catch(e){}}if(ch)saveProfile(card)}
+
+/* ---------- Scanner & Rubrica ---------- */
+async function openScanner(){
+  show('scannerModal');$('scannerStatus').textContent='Inquadra un codice QR o carica un file';
+  try{vs=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});const v=$('qrVideo');v.srcObject=vs;await v.play();loop()}
+  catch(e){$('scannerStatus').textContent='Fotocamera non disponibile: carica un\u2019immagine o un file .vcf'}
+}
+function closeScanner(){if(vs)vs.getTracks().forEach(t=>t.stop());vs=null;hide('scannerModal')}
+function loop(){
+  if(!vs)return;const v=$('qrVideo'),c=$('qrCanvas');
+  if(v.readyState===v.HAVE_ENOUGH_DATA&&v.videoWidth){c.width=v.videoWidth;c.height=v.videoHeight;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(v,0,0);const d=x.getImageData(0,0,c.width,c.height),r=jsQR(d.data,d.width,d.height,{inversionAttempts:'dontInvert'});if(r&&r.data){closeScanner();saveScan(r.data);return}}
+  requestAnimationFrame(loop)
+}
+async function scanFile(e){
+  const f=e.target.files[0];e.target.value='';if(!f)return;
+  if(/\.vcf$/i.test(f.name)||/vcard/i.test(f.type)){const cs=(await f.text()).match(/BEGIN:VCARD[\s\S]*?END:VCARD/gi)||[];if(!cs.length)return toast('Nessuna vCard trovata','fa-triangle-exclamation');for(const c of cs)await saveScan(c);closeScanner();return}
+  const u=URL.createObjectURL(f),i=new Image();
+  i.onload=()=>{const k=Math.min(1,1600/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*k|0;c.height=i.height*k|0;const x=c.getContext('2d');x.drawImage(i,0,0,c.width,c.height);URL.revokeObjectURL(u);const d=x.getImageData(0,0,c.width,c.height),r=jsQR(d.data,d.width,d.height);if(r&&r.data){closeScanner();saveScan(r.data)}else toast('Nessun codice QR rilevato','fa-triangle-exclamation')};
+  i.src=u
+}
+function parseV(t){
+  const L=t.replace(/\r?\n[ \t]/g,'').split(/\r?\n/),g=k=>{const l=L.find(x=>new RegExp('^'+k+'[;:]','i').test(x));return l?l.slice(l.indexOf(':')+1).trim():''},u=s=>s.replace(/\\([,;\\])/g,'$1').replace(/\\n/gi,' ');
+  const N=g('N').split(';');let name=u(g('FN'));if(!name)name=u([N[1],N[0]].filter(Boolean).join(' '));
+  return{name,company:u(g('ORG').split(';')[0]),role:u(g('TITLE')),tel:g('TEL'),email:g('EMAIL')}
+}
+async function saveScan(raw){
+  raw=raw.trim();const v=/BEGIN:VCARD/i.test(raw),rec={raw,vcard:v,date:Date.now()};
+  if(v){Object.assign(rec,parseV(raw));rec.title=[rec.company,rec.name].filter(Boolean).join(' \u2013 ')||'vCard'}
+  else{let h='';try{h=new URL(raw).hostname.replace(/^www\./,'')}catch(e){}rec.title=h?'Link \u2013 '+h:'QR \u2013 '+raw.slice(0,30)}
+  try{if((await all()).some(x=>x.raw===raw))return toast('Gi\u00e0 presente in rubrica','fa-circle-info');await req('contacts','readwrite',s=>s.add(rec));toast('Salvato: '+rec.title)}
+  catch(e){toast('Memoria non disponibile','fa-triangle-exclamation')}
+}
+const all=()=>req('contacts','readonly',s=>s.getAll()).then(r=>r||[]);
+const btn=(a,i,t,c='')=>`<button data-a="${a}" class="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-[11px] font-semibold ${c}"><i class="fa-solid ${i} mr-1"></i>${t}</button>`;
+async function renderRub(){
+  try{RC=(await all()).sort((a,b)=>b.date-a.date)}catch(e){RC=[]}
+  $('rubricaEmpty').classList.toggle('hidden',RC.length>0);
+  $('rubricaList').innerHTML=RC.map(r=>`<div class="p-3 bg-slate-50 rounded-xl border border-slate-200" data-id="${r.id}"><div class="flex justify-between text-[10px] text-slate-400"><span>${esc(new Date(r.date).toLocaleString('it-IT'))}</span><i class="fa-solid ${r.vcard?'fa-address-card':'fa-qrcode'} text-spea-cyan"></i></div><div class="font-bold text-slate-800 text-sm mt-1 break-words">${esc(r.title)}</div><div class="text-[11px] text-slate-500 break-all">${esc(r.vcard?[r.role,r.tel,r.email].filter(Boolean).join(' \u00b7 '):r.raw.slice(0,120))}</div><div class="flex gap-2 mt-2">${r.vcard?btn('vcf','fa-user-plus','Salva contatto'):''}${isUrl(r.raw)?btn('open','fa-arrow-up-right-from-square','Apri'):''}${btn('del','fa-trash','Elimina','text-rose-600')}</div></div>`).join('')
+}
+async function openRubrica(){await renderRub();show('rubricaModal')}
+$('rubricaList').onclick=async e=>{
+  const b=e.target.closest('button');if(!b)return;const id=+b.closest('[data-id]').dataset.id,r=RC.find(x=>x.id===id);if(!r)return;
+  if(b.dataset.a==='open')window.open(r.raw,'_blank');
+  else if(b.dataset.a==='vcf')sendFile(new Blob([r.raw],{type:'text/vcard'}),safe(r.title)+'.vcf');
+  else if(confirm('Eliminare "'+r.title+'"?')){await req('contacts','readwrite',s=>s.delete(id));renderRub()}
+};
+function exportAll(){const l=RC.filter(r=>r.vcard);if(!l.length)return toast('Nessuna vCard da esportare','fa-circle-info');sendFile(new Blob([l.map(r=>r.raw.trim()).join('\r\n')+'\r\n'],{type:'text/vcard'}),'Digital Biz Card - Rubrica.vcf')}
+
+/* ---------- Start ---------- */
+(async()=>{
+  await idb();let v;
+  try{v=await req('kv','readonly',s=>s.get('profile'))}catch(e){}
+  if(!v)try{v=JSON.parse(localStorage.getItem(LS))}catch(e){}
+  if(v)card={...D,...v};
+  render();localize();
+  if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
+  if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+})();
+</script>
+</body></html>
